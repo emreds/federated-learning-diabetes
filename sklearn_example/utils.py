@@ -76,7 +76,6 @@ def load_diabetes_data(random_seed, test_size:float = 0.2) -> Dataset:
     print('Dimensions: \n x_train:{} \n x_test{} \n y_train{} \n y_test{}'.format(x_train.shape, x_test.shape, y_train.shape, y_test.shape))
 
     return (x_train, y_train), (x_test, y_test)
-
     
     
 def shuffle(X: np.ndarray, y: np.ndarray) -> XY:

@@ -1,5 +1,6 @@
 from typing import Dict
 
+import dirichlet_dist as dd
 import flwr as fl
 import utils
 from sklearn.linear_model import LogisticRegression
@@ -15,8 +16,18 @@ def get_evaluate_fn(model: LogisticRegression, random_seed: int):
     """Return an evaluation function for server-side evaluation."""
 
     # Load test data here to avoid the overhead of doing it in `evaluate` itself
-    _, (X_test, y_test) = utils.load_diabetes_data(random_seed=random_seed)
-
+    #_, (X_test, y_test) = utils.load_diabetes_data(random_seed=random_seed)
+    data_path = "../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv"
+    data_dist = dd.DirichletDist(data_path=data_path,
+                                class_col="Diabetes_binary",
+                                num_clients=10,
+                                num_classes=2,
+                                random_state=random_seed,
+                                test_split=0.2)
+    
+    _, test_data = data_dist.get_dirichlet_noniid_splits(density=1)
+    X_test = test_data["data"]
+    y_test = test_data["target"]
     # The `evaluate` function will be called after every round
     def evaluate(server_round, parameters: fl.common.NDArrays, config):
         # Update model with the latest parameters
