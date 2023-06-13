@@ -1,7 +1,6 @@
 from typing import List, Tuple, Union
 
 import numpy as np
-import openml
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_validate, train_test_split
@@ -52,21 +51,6 @@ def set_initial_params(model: LogisticRegression, n_classes, n_features):
     if model.fit_intercept:
         model.intercept_ = np.zeros((n_classes,))
 
-
-def load_mnist() -> Dataset:
-    """Loads the MNIST dataset using OpenML.
-
-    OpenML dataset link: https://www.openml.org/d/554
-    """
-    mnist_openml = openml.datasets.get_dataset(554)
-    Xy, _, _, _ = mnist_openml.get_data(dataset_format="array")
-    X = Xy[:, :-1]  # the last column contains labels
-    y = Xy[:, -1]
-    # First 60000 samples consist of the train set
-    x_train, y_train = X[:60000], y[:60000]
-    x_test, y_test = X[60000:], y[60000:]
-    return (x_train, y_train), (x_test, y_test)
-
 def load_diabetes_data(random_seed, test_size:float = 0.2) -> Dataset:
     df = pd.read_csv("../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv")
     y = df['Diabetes_binary']
@@ -90,3 +74,5 @@ def partition(X: np.ndarray, y: np.ndarray, num_partitions: int) -> XYList:
     return list(
         zip(np.array_split(X, num_partitions), np.array_split(y, num_partitions))
     )
+    
+

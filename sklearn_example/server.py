@@ -2,7 +2,9 @@ from typing import Dict
 
 import dirichlet_dist as dd
 import flwr as fl
+import metrics
 import utils
+import wandb
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
 
@@ -16,7 +18,6 @@ def get_evaluate_fn(model: LogisticRegression, random_seed: int):
     """Return an evaluation function for server-side evaluation."""
 
     # Load test data here to avoid the overhead of doing it in `evaluate` itself
-    #_, (X_test, y_test) = utils.load_diabetes_data(random_seed=random_seed)
     data_path = "../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv"
     data_dist = dd.DirichletDist(data_path=data_path,
                                 class_col="Diabetes_binary",
@@ -32,8 +33,13 @@ def get_evaluate_fn(model: LogisticRegression, random_seed: int):
     def evaluate(server_round, parameters: fl.common.NDArrays, config):
         # Update model with the latest parameters
         utils.set_model_params(model, parameters)
+        y_pred = model.predict(X_test)
         loss = log_loss(y_test, model.predict_proba(X_test))
         accuracy = model.score(X_test, y_test)
+        scores = metrics.get_scores(y_test, y_pred)
+        scores["loss"] = loss
+        scores["accuracy"] = accuracy
+        wandb.log(scores)
         return loss, {"accuracy": accuracy}
 
     return evaluate
@@ -42,6 +48,19 @@ def get_evaluate_fn(model: LogisticRegression, random_seed: int):
 # Start Flower server for five rounds of federated learning
 if __name__ == "__main__":
     model = LogisticRegression()
+    wandb.init(
+    # set the wandb project where this run will be logged
+    project="federated_learning_diabetes",
+    
+    # track hyperparameters and run metadata
+    config={
+    "model": "Logistic Regression",
+    "dataset": "CIFAR-100",
+    "epochs": 10,
+    "n_features": 21, 
+    "test_split": 0.2
+    }
+)
     utils.set_initial_params(model, n_classes=2, n_features=21)
     random_seed = 42
     strategy = fl.server.strategy.FedAvg(
