@@ -11,32 +11,25 @@ LogRegParams = Union[XY, Tuple[np.ndarray]]
 XYList = List[XY]
 
 
-def get_model_parameters(model: LogisticRegression) -> LogRegParams:
+def get_model_parameters(model) -> LogRegParams:
     """Returns the paramters of a sklearn LogisticRegression model."""
-    if model.fit_intercept:
-        params = [
-            model.coef_,
-            model.intercept_,
-        ]
-    else:
-        params = [
-            model.coef_,
-        ]
+    params = [
+        model.coefs_,
+    ]
     return params
 
 
 def set_model_params(
-    model: LogisticRegression, params: LogRegParams
-) -> LogisticRegression:
+    model, params
+):
     """Sets the parameters of a sklean LogisticRegression model."""
-    print(params)
-    model.coef_ = params[0]
-    if model.fit_intercept:
-        model.intercept_ = params[1]
+    print(f"These are params: {params}")
+    model.coefs_ = params[0]
+
     return model
 
 
-def set_initial_params(model: LogisticRegression, n_classes, n_features):
+def set_initial_params(model, n_classes, n_features):
     """Sets initial parameters as zeros Required since model params are
     uninitialized until model.fit is called.
 
@@ -46,11 +39,12 @@ def set_initial_params(model: LogisticRegression, n_classes, n_features):
     """
     # Number of classes in dataset.
     # Number of features in dataset
-    model.classes_ = np.array([i for i in range(10)])
+    model.classes_ = np.array([i for i in range(n_classes)])
 
-    model.coef_ = np.zeros((n_classes, n_features))
-    if model.fit_intercept:
-        model.intercept_ = np.zeros((n_classes,))
+    model.coefs_ = np.zeros(99)
+    model.n_layers_ = 100
+    model.intercepts_ = np.zeros(n_classes)
+    
 
 def load_diabetes_data(random_seed, test_size:float = 0.2) -> Dataset:
     df = pd.read_csv("../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv")

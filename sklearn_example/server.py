@@ -9,6 +9,7 @@ import utils
 import wandb
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
+from sklearn.neural_network import MLPClassifier
 
 test_split = 0.2
 density = 0.01
@@ -21,7 +22,7 @@ def fit_round(server_round: int) -> Dict:
     return {"server_round": server_round}
 
 
-def get_evaluate_fn(model: LogisticRegression, random_seed: int, test_split, density, num_clients):
+def get_evaluate_fn(model, random_seed: int, test_split, density, num_clients):
     """Return an evaluation function for server-side evaluation."""
 
     # Load test data here to avoid the overhead of doing it in `evaluate` itself
@@ -38,6 +39,7 @@ def get_evaluate_fn(model: LogisticRegression, random_seed: int, test_split, den
     # The `evaluate` function will be called after every round
     def evaluate(server_round, parameters: fl.common.NDArrays, config):
         # Update model with the latest parameters
+        nonlocal model
         utils.set_model_params(model, parameters)
         y_pred = model.predict(X_test)
         loss = log_loss(y_test, model.predict_proba(X_test))
@@ -66,14 +68,15 @@ if __name__ == "__main__":
     num_clients = args.num_clients
     
     
-    model = LogisticRegression()
+    model = MLPClassifier()
     wandb.init(
+    mode="disabled",
     # set the wandb project where this run will be logged
     project="federated_learning_diabetes",
     
     # track hyperparameters and run metadata
     config={
-    "model": "Logistic Regression",
+    "model": "MLP",
     "dataset": "Diabetes Health Indicators",
     "epochs": epochs,
     "n_features": 21, 

@@ -7,6 +7,7 @@ import numpy as np
 import server as server
 import utils
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 
 if __name__ == "__main__":
     random_seed = 42
@@ -52,13 +53,9 @@ if __name__ == "__main__":
     X_train = train_data[client_id]["data"]
     y_train = train_data[client_id]["target"]
 
-    # Create LogisticRegression Model
-    model = LogisticRegression(
-        penalty="l2",
-        max_iter=server.epochs,  # local epoch
-        warm_start=True,  # prevent refreshing weights when fitting
-    )
-
+    
+    model = MLPClassifier(activation='logistic', solver='adam', alpha=0.0001, random_state=random_seed)
+    
     # Setting initial parameters, akin to model.compile for keras models
     utils.set_initial_params(model, n_classes=2, n_features=21)
 
