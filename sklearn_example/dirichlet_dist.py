@@ -16,8 +16,6 @@ class DirichletDist:
         self.num_clients = num_clients
         self.num_classes = num_classes
         self.test_split = test_split
-        self.fold_map = {"train": 0 , "val": 1, "test": 2}
-        self.fold_col = "fold"
         self.random_state = random_state
         
     def _read_data(self):

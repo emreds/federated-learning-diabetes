@@ -7,7 +7,7 @@ def get_scores(y_true, y_pred):
     scores = {  
             'Accuracy': 'accuracy',
             'Sensitivity':'recall', 
-            'precision':'precision',
+            'Precision':'precision',
             'tp': conf_results[1, 1], 
             'tn': conf_results[0, 0],
             'fp': conf_results[0, 1], 

@@ -29,6 +29,7 @@ def set_model_params(
     model: LogisticRegression, params: LogRegParams
 ) -> LogisticRegression:
     """Sets the parameters of a sklean LogisticRegression model."""
+    print(params)
     model.coef_ = params[0]
     if model.fit_intercept:
         model.intercept_ = params[1]
