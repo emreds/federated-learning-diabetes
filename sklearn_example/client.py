@@ -47,7 +47,7 @@ if __name__ == "__main__":
     
     data_dist = dd.DirichletDist(data_path=server.data_path,
                                 class_col="Diabetes_binary",
-                                num_clients=num_clients,
+                                num_clients=10,
                                 num_classes=2,
                                 random_state=random_seed,
                                 test_split=server.test_split)
@@ -82,14 +82,14 @@ if __name__ == "__main__":
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 model.fit(X_train, y_train)
-            print(f"Training finished for round {config['server_round']}")
+            #print(f"Training finished for round {config['server_round']}")
             return utils.get_model_parameters(model), len(X_train), {}
         
         def evaluate(self, parameters, config):  # type: ignore
             utils.set_model_params(model, parameters)
             loss = log_loss(y_test, model.predict_proba(X_test))
             accuracy = model.score(X_test, y_test)
-            print(f"Client accuracy: {accuracy}")
+            #print(f"Client accuracy: {accuracy}")
             return loss, len(X_test), {"accuracy": accuracy}
         
     # Start Flower client

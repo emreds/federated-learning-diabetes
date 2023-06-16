@@ -42,26 +42,27 @@ class DirichletDist:
         data = self._read_data()
         dirichlet_sample = self._dirichlet_sample(density)
         train_df, test_df = train_test_split(data, test_size=self.test_split, random_state=self.random_state)
-        #print(f"These are dirichlet samples: {dirichlet_sample}")
         
         client_dfs = {}
         for client in range(self.num_clients):
             client_df = pd.DataFrame()
 
             for class_idx in range(self.num_classes):
-                class_subset = train_df.loc[train_df[self.class_col] == class_idx].sample(n=10, random_state=self.random_state)
+                # For every class we sample 10 rows and add them to the client dataframe. 
+                # The reason behind it is, while doing dirichlet sampling, we might not get any samples for a particular class.
+                # class_subset = train_df.loc[train_df[self.class_col] == class_idx].sample(n=10, random_state=self.random_state)
                 
                 for client_idx, class_dist in enumerate(dirichlet_sample):
                     subset = train_df.loc[(train_df[self.class_col] == class_idx)]
                     #print(len(subset))
-                    lower_bound = math.floor(len(subset) * sum(dirichlet_sample[class_idx][0:client]))
+                    lower_bound = math.floor(len(subset) * sum(dirichlet_sample[client_idx][0:client]))
                     #print(len(subset))
-                    upper_bound = math.floor(len(subset) * sum(dirichlet_sample[class_idx][0:client + 1]))
+                    upper_bound = math.floor(len(subset) * sum(dirichlet_sample[client_idx][0:client + 1]))
                     subset = subset[lower_bound:upper_bound]
                     #print(len(subset))
                     client_df = pd.concat([client_df, subset])
                     #print("Client df: ", len(client_df))
-                client_df = pd.concat([client_df, class_subset])
+                #client_df = pd.concat([client_df, class_subset])
             
         #    print(f"In Dirichlet log 1 Client {client} has {client_df.shape} samples")
             client_dfs[client] = {"target": client_df[self.class_col], "data": client_df.drop([self.class_col], axis=1)}

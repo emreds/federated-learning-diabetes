@@ -8,16 +8,15 @@ import flwr as fl
 import metrics
 import utils
 import wandb
-from sklearn.exceptions import DataDimensionalityWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
 
 warnings.filterwarnings("ignore")
 
 test_split = 0.2
-density = 1
-epochs = 5
-num_rounds = 10
+density = 0.5
+epochs = 1
+num_rounds = 100
 data_path = "../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv"
 
 def fit_round(server_round: int) -> Dict:
@@ -31,7 +30,7 @@ def get_evaluate_fn(model: LogisticRegression, random_seed: int, test_split, den
     # Load test data here to avoid the overhead of doing it in `evaluate` itself
     data_dist = dd.DirichletDist(data_path=data_path,
                                 class_col="Diabetes_binary",
-                                num_clients=num_clients,
+                                num_clients=10,
                                 num_classes=2,
                                 random_state=random_seed,
                                 test_split=test_split)
