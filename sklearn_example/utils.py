@@ -29,7 +29,7 @@ def set_model_params(
     model: LogisticRegression, params: LogRegParams
 ) -> LogisticRegression:
     """Sets the parameters of a sklean LogisticRegression model."""
-    print(params)
+    #print(params)
     model.coef_ = params[0]
     if model.fit_intercept:
         model.intercept_ = params[1]
@@ -46,7 +46,7 @@ def set_initial_params(model: LogisticRegression, n_classes, n_features):
     """
     # Number of classes in dataset.
     # Number of features in dataset
-    model.classes_ = np.array([i for i in range(10)])
+    model.classes_ = np.array([i for i in range(n_classes)])
 
     model.coef_ = np.zeros((n_classes, n_features))
     if model.fit_intercept:

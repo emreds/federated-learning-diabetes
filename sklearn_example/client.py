@@ -6,7 +6,11 @@ import flwr as fl
 import numpy as np
 import server as server
 import utils
+from sklearn.exceptions import DataConversionWarning
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import log_loss
+
+warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
     random_seed = 42
@@ -48,15 +52,20 @@ if __name__ == "__main__":
                                 random_state=random_seed,
                                 test_split=server.test_split)
     
-    train_data, _ = data_dist.get_dirichlet_noniid_splits(density=server.density)
+    train_data, test_data = data_dist.get_dirichlet_noniid_splits(density=server.density)
     X_train = train_data[client_id]["data"]
     y_train = train_data[client_id]["target"]
+    
+    print(f"Client Data: {X_train.shape}")
+    X_test = test_data["data"]
+    y_test = test_data["target"]
 
     # Create LogisticRegression Model
     model = LogisticRegression(
         penalty="l2",
         max_iter=server.epochs,  # local epoch
         warm_start=True,  # prevent refreshing weights when fitting
+        fit_intercept=True
     )
 
     # Setting initial parameters, akin to model.compile for keras models
@@ -75,6 +84,13 @@ if __name__ == "__main__":
                 model.fit(X_train, y_train)
             print(f"Training finished for round {config['server_round']}")
             return utils.get_model_parameters(model), len(X_train), {}
+        
+        def evaluate(self, parameters, config):  # type: ignore
+            utils.set_model_params(model, parameters)
+            loss = log_loss(y_test, model.predict_proba(X_test))
+            accuracy = model.score(X_test, y_test)
+            print(f"Client accuracy: {accuracy}")
+            return loss, len(X_test), {"accuracy": accuracy}
         
     # Start Flower client
     fl.client.start_numpy_client(server_address="0.0.0.0:8080", client=LogisticClient())

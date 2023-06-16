@@ -1,5 +1,6 @@
 
 import argparse
+import warnings
 from typing import Dict
 
 import dirichlet_dist as dd
@@ -7,13 +8,16 @@ import flwr as fl
 import metrics
 import utils
 import wandb
+from sklearn.exceptions import DataDimensionalityWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
 
+warnings.filterwarnings("ignore")
+
 test_split = 0.2
-density = 0.01
-epochs = 1
-num_rounds = 3
+density = 1
+epochs = 5
+num_rounds = 10
 data_path = "../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv"
 
 def fit_round(server_round: int) -> Dict:
@@ -66,11 +70,10 @@ if __name__ == "__main__":
     num_clients = args.num_clients
     
     
-    model = LogisticRegression()
+    
     wandb.init(
     # set the wandb project where this run will be logged
     project="federated_learning_diabetes",
-    
     # track hyperparameters and run metadata
     config={
     "model": "Logistic Regression",
@@ -84,7 +87,9 @@ if __name__ == "__main__":
     }
     
 )
-
+    
+    
+    model = LogisticRegression()
     utils.set_initial_params(model, n_classes=2, n_features=21)
     random_seed = 42
     strategy = fl.server.strategy.FedAvg(
