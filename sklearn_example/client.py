@@ -14,9 +14,7 @@ warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
     random_seed = 42
-    
-    # (X_train, y_train), _ = utils.load_diabetes_data(random_seed=random_seed)
-    
+
     parser = argparse.ArgumentParser(description="Flower")
     parser.add_argument(
         "--partition",
@@ -27,7 +25,7 @@ if __name__ == "__main__":
         help="Specifies the artificial data partition of the dataset to be used. \
         Picks partition 0 by default",
     )
-    
+
     parser.add_argument(
         "--num_clients",
         type=int,
@@ -36,26 +34,30 @@ if __name__ == "__main__":
         required=False,
         help="Specifies how many clients the bash script will start.",
     )
-    
+
     args = parser.parse_args()
     # Split train set into 10 partitions and randomly use one for training.
     np.random.seed(random_seed)
     # Subtract one from the id because array's start from 0.
     client_id = args.partition - 1
     num_clients = args.num_clients
-    #(X_train, y_train) = utils.partition(X_train, y_train, 10)[client_id]
-    
-    data_dist = dd.DirichletDist(data_path=server.data_path,
-                                class_col="Diabetes_binary",
-                                num_clients=10,
-                                num_classes=2,
-                                random_state=random_seed,
-                                test_split=server.test_split)
-    
-    train_data, test_data = data_dist.get_dirichlet_noniid_splits(density=server.density)
+    # (X_train, y_train) = utils.partition(X_train, y_train, 10)[client_id]
+
+    data_dist = dd.DirichletDist(
+        data_path=server.data_path,
+        class_col=server.class_col,
+        num_clients=10,
+        num_classes=2,
+        random_state=random_seed,
+        test_split=server.test_split,
+    )
+
+    train_data, test_data = data_dist.get_dirichlet_noniid_splits(
+        density=server.density
+    )
     X_train = train_data[client_id]["data"]
     y_train = train_data[client_id]["target"]
-    
+
     print(f"Client Data: {X_train.shape}")
     X_test = test_data["data"]
     y_test = test_data["target"]
@@ -65,7 +67,7 @@ if __name__ == "__main__":
         penalty="l2",
         max_iter=server.epochs,  # local epoch
         warm_start=True,  # prevent refreshing weights when fitting
-        fit_intercept=True
+        fit_intercept=True,
     )
 
     # Setting initial parameters, akin to model.compile for keras models
@@ -82,15 +84,15 @@ if __name__ == "__main__":
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 model.fit(X_train, y_train)
-            #print(f"Training finished for round {config['server_round']}")
+            # print(f"Training finished for round {config['server_round']}")
             return utils.get_model_parameters(model), len(X_train), {}
-        
+
         def evaluate(self, parameters, config):  # type: ignore
             utils.set_model_params(model, parameters)
             loss = log_loss(y_test, model.predict_proba(X_test))
             accuracy = model.score(X_test, y_test)
-            #print(f"Client accuracy: {accuracy}")
+            # print(f"Client accuracy: {accuracy}")
             return loss, len(X_test), {"accuracy": accuracy}
-        
+
     # Start Flower client
     fl.client.start_numpy_client(server_address="0.0.0.0:8080", client=LogisticClient())
