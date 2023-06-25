@@ -7,7 +7,7 @@ This project focuses on the implementation of logistic regression models on 10 d
 ![architecture](images/FLMedicineDiabetes.png)
 
 - Every client trains the model locally on their local machine with their part of the dataset. 
-- The server aggregates the model weights with taking the weighted average of the client's data portion and test score, then sends the updated model back to the clients.
+- The server aggregates the model weights with taking the weighted average of the client's data portion, then sends the updated model back to the clients.
 - The clients then update their local model with the new model weights and repeat the process until the model converges.
 # Dataset Characteristics
 
@@ -21,6 +21,15 @@ https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset
 # Federated Averaging Strategy
 
 To aggregate the individual client models effectively, the project adopts the Federated Averaging strategy. This approach allows for the collaborative combination of the locally trained models, leading to a robust and accurate global model.
+
+Federated Averaging is a simple yet effective strategy that is widely used in federated learning. The strategy consists of the following steps:
+- Initialize the global model with random weights
+- Send the global model to the clients.
+- Train the local model on the client's data.
+- Send the updated local model to the server.
+- Aggregate the local models by taking the weighted average of the local models' weights based on their data proportion.
+- Send the updated global model to the clients.
+- Repeat the process until the model converges.
 
 # Getting Started 
 1. Clone the repository
