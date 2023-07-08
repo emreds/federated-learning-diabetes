@@ -3,12 +3,16 @@ import warnings
 
 import dirichlet_dist as dd
 import flwr as fl
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import server as server
 import utils
 from sklearn.exceptions import DataConversionWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
+from sklearn.model_selection import KFold
 
 warnings.filterwarnings("ignore")
 
@@ -55,9 +59,28 @@ if __name__ == "__main__":
     train_data, test_data = data_dist.get_dirichlet_noniid_splits(
         density=server.density
     )
+    
+    #data_folds = []        
+    
     X_train = train_data[client_id]["data"]
     y_train = train_data[client_id]["target"]
-
+    # I double the same dataset, since some of them doesn't has enough data.
+    #X_train = pd.concat([X_train, X_train], ignore_index=True)
+    #y_train = pd.concat([y_train, y_train], ignore_index=True)
+    
+    '''
+    prev_index = 0
+    # Split the data into folds
+    for train_index in range(len(X_train) // server.num_rounds, len(X_train), len(X_train) // server.num_rounds):
+        X_fold = X_train[prev_index:train_index]
+        y_fold = y_train[prev_index:train_index]
+        data_folds.append((X_fold, y_fold))
+        prev_index = train_index
+    
+    
+    ROUND_INDEX = 0
+    '''
+    curr_round = 0
     print(f"Client Data: {X_train.shape}")
     X_test = test_data["data"]
     y_test = test_data["target"]
@@ -72,9 +95,26 @@ if __name__ == "__main__":
 
     # Setting initial parameters, akin to model.compile for keras models
     utils.set_initial_params(model, n_classes=2, n_features=21)
+    print(f"THESE ARE THE VALUE COUNTS OF THE TRAINING DATA {y_train.value_counts()}")
+    
+    sns.countplot(x=y_train)
 
+    # Set labels and title
+    plt.xlabel('Class')
+    plt.ylabel('Count')
+    plt.title(f'Class Distribution for {client_id}')
+
+    # Save the figure
+    figure_name = f'{client_id}_class_distribution.png'
+    plt.savefig(figure_name)
+    
+    
     # Define Flower client
     class LogisticClient(fl.client.NumPyClient):
+        def __init__(self) -> None:
+            super().__init__()
+            self.curr_round = 1
+                    
         def get_parameters(self, config):  # type: ignore
             return utils.get_model_parameters(model)
 
@@ -83,15 +123,36 @@ if __name__ == "__main__":
             # Ignore convergence failure due to low local epochs
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
+                # Get the training data for the current round
+                #round_train_x, round_train_y = data_folds[ROUND_INDEX][0], data_folds[ROUND_INDEX][1]
                 model.fit(X_train, y_train)
+                #self.ROUND_INDEX += 1
+                #print(f"Client {client_id} finished training round {self.curr_round}")
+                #print(f"Type of the client id {type(client_id)}")
+                #if curr_round == 1 and client_id == 6:
+                self.curr_round += 1
+                #print("!!!!!!!!!!!!!Printing feature importances!!!!!!!!!!!!!")
+                if client_id == 6 and self.curr_round == server.num_rounds - 1:
+                    feature_importances = model.coef_[0]
+                    # Print feature importances
+                    print(f"Feature importances for client {client_id} for round {self.curr_round}:")
+                    for feature, importance in zip(X_train.columns, feature_importances):
+                        print(f"\n {feature}: {importance}")
+                        
+                    with open("./client_6_feature_importances.txt", 'w') as file:
+                        for feature, importance in zip(X_train.columns, feature_importances): 
+                            file.write(f"{feature}: {importance}\n")
+                        
             # print(f"Training finished for round {config['server_round']}")
+            accuracy = model.score(X_test, y_test)
+            print(f"Client accuracy for client {client_id}: {accuracy} ")
             return utils.get_model_parameters(model), len(X_train), {}
 
         def evaluate(self, parameters, config):  # type: ignore
             utils.set_model_params(model, parameters)
             loss = log_loss(y_test, model.predict_proba(X_test))
             accuracy = model.score(X_test, y_test)
-            # print(f"Client accuracy: {accuracy}")
+            #print(f"Client accuracy for client {client_id}: {accuracy} ")
             return loss, len(X_test), {"accuracy": accuracy}
 
     # Start Flower client

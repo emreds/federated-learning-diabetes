@@ -28,7 +28,7 @@ class DirichletDist:
         self.random_state = random_state
 
     def _read_data(self):
-        data = pd.read_csv(self.data_path)
+        data = pd.read_csv(self.data_path)[:70692]
 
         return data
 
@@ -43,7 +43,7 @@ class DirichletDist:
 
         return dirichlet_sample
 
-    def get_dirichlet_noniid_splits(self, density=1):
+    def get_dirichlet_noniid_splits(self, density=0.5):
         """
         We create a dirichlet distribution based on the number of clients and the number of target classes.
         :var density: Determins the level of heterogeneity. The lower the density the more heterogeneous the data will be

@@ -17,7 +17,7 @@ density = 0.5
 epochs = 1
 num_rounds = 100
 data_path = (
-    "../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv"
+    "../data/diabetes_data/diabetes_binary_health_indicators_BRFSS2015.csv"
 )
 class_col = "Diabetes_binary"
 
@@ -56,6 +56,18 @@ def get_evaluate_fn(
         scores["loss"] = loss
         scores["Accuracy"] = accuracy
         wandb.log(scores)
+        
+        if server_round == 100: 
+            feature_importances = model.coef_[0]
+            # Print feature importances
+            print(f"Feature importances for central server for round {server_round}:")
+            for feature, importance in zip(X_test.columns, feature_importances):
+                print(f"\n {feature}: {importance}")
+                
+            with open("./central_feature_importances.txt", 'w') as file:
+                    for feature, importance in zip(X_test.columns, feature_importances): 
+                        file.write(f"{feature}: {importance}\n")
+        
         return loss, {"accuracy": accuracy}
 
     return evaluate
