@@ -14,13 +14,13 @@ warnings.filterwarnings("ignore")
 
 test_split = 0.2
 density = 0.5
-epochs = 1
+epochs = 3
 num_rounds = 100
 data_path = (
     "../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv"
 )
 class_col = "Diabetes_binary"
-
+plot_client_dist = True
 
 def fit_round(server_round: int) -> Dict:
     """Send round number to client."""
@@ -59,8 +59,7 @@ def get_evaluate_fn(
         
         if server_round == 100: 
             feature_importances = model.coef_[0]
-            # Print feature importances
-            print(f"Feature importances for central server for round {server_round}:")
+            # Print feature importances for the central model.
             for feature, importance in zip(X_test.columns, feature_importances):
                 print(f"\n {feature}: {importance}")
                 

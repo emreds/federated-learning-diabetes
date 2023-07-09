@@ -73,30 +73,35 @@ if __name__ == "__main__":
     with open(f"client_unique_data_lengts.txt", "w") as f:
         for client_idx, length in unique_counts:
             f.write(f"{client_idx+1}: {length}\n")    
-        
+    
     X_train = train_data[client_id]["data"]
     y_train = train_data[client_id]["target"]
-    # I double the same dataset, since some of them doesn't has enough data.
-    #X_train = pd.concat([X_train, X_train], ignore_index=True)
-    #y_train = pd.concat([y_train, y_train], ignore_index=True)
     
-    '''
-    prev_index = 0
-    # Split the data into folds
-    for train_index in range(len(X_train) // server.num_rounds, len(X_train), len(X_train) // server.num_rounds):
-        X_fold = X_train[prev_index:train_index]
-        y_fold = y_train[prev_index:train_index]
-        data_folds.append((X_fold, y_fold))
-        prev_index = train_index
-    
-    
-    ROUND_INDEX = 0
-    '''
-    
-    curr_round = 0
     print(f"Client Data: {X_train.shape}")
     X_test = test_data["data"]
     y_test = test_data["target"]
+    
+    if server.plot_client_dist:
+        # Create a new figure and axis objects
+        fig, axes = plt.subplots(2, 5, figsize=(25, 8))
+
+        # Flatten the axes array to easily access each subplot
+        axes = axes.flatten()
+
+        # Plot the figures
+        for i in range(10):
+            plt.subplot(2, 5, i+1)
+            sns.countplot(x=y_train)
+            plt.xlabel('Class')
+            plt.ylabel('Count')
+            plt.title(f'Class Distribution for Client {i+1}')
+
+        # Adjust spacing between subplots
+        plt.tight_layout()
+
+        # Save the combined figure
+        figure_name = 'combined_figures_presentation.png'
+        plt.savefig(figure_name)
 
     # Create LogisticRegression Model
     model = LogisticRegression(
@@ -108,21 +113,6 @@ if __name__ == "__main__":
 
     # Setting initial parameters, akin to model.compile for keras models
     utils.set_initial_params(model, n_classes=2, n_features=21)
-    '''
-    print(f"THESE ARE THE VALUE COUNTS OF THE TRAINING DATA {y_train.value_counts()}")
-    '''
-    
-    sns.countplot(x=y_train)
-
-    # Set labels and title
-    plt.xlabel('Class')
-    plt.ylabel('Count')
-    plt.title(f'Class Distribution for {client_id}')
-
-    # Save the figure
-    figure_name = f'{client_id}_class_distribution.png'
-    plt.savefig(figure_name)
-    
     
     # Define Flower client
     class LogisticClient(fl.client.NumPyClient):
@@ -139,18 +129,12 @@ if __name__ == "__main__":
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 # Get the training data for the current round
-                #round_train_x, round_train_y = data_folds[ROUND_INDEX][0], data_folds[ROUND_INDEX][1]
                 model.fit(X_train, y_train)
-                #self.ROUND_INDEX += 1
-                #print(f"Client {client_id} finished training round {self.curr_round}")
-                #print(f"Type of the client id {type(client_id)}")
-                #if curr_round == 1 and client_id == 6:
                 self.curr_round += 1
-                #print("!!!!!!!!!!!!!Printing feature importances!!!!!!!!!!!!!")
                 if client_id == 6 and self.curr_round == server.num_rounds - 1:
                     feature_importances = model.coef_[0]
                     # Print feature importances
-                    print(f"Feature importances for client {client_id} for round {self.curr_round}:")
+                    #print(f"Feature importances for client {client_id} for round {self.curr_round}:")
                     for feature, importance in zip(X_train.columns, feature_importances):
                         print(f"\n {feature}: {importance}")
                         

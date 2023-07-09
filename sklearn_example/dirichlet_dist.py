@@ -56,26 +56,25 @@ class DirichletDist:
         train_df, test_df = train_test_split(
             data, test_size=self.test_split, random_state=self.random_state
         )
-        #print(dirichlet_sample) 2x10
+        # print(len(dirichlet_sample)) 2x10
+        with open("dirichlet_sample.txt", "w") as f:
+            f.write(str(dirichlet_sample))
 
         client_dfs = {}
         for client in range(self.num_clients):
             client_df = pd.DataFrame()
 
             for class_idx in range(self.num_classes):
-                #print(self.num_classes)
-                #client 1 
-                # class_idx = 0
-                #print 
-                #print(dirichlet_sample)
                 subset = train_df.loc[(train_df[self.class_col] == class_idx)]
                 # print(len(subset))
                 lower_bound = math.floor(
                     len(subset) * sum(dirichlet_sample[class_idx][0:client])
                 )
                 # print(len(subset))
+                # Sometimes the difference between the number at index client and client+1 is so small
+                # that the lower bound is equal to the upper bound
                 upper_bound = math.floor(
-                    len(subset) * sum(dirichlet_sample[class_idx][0 : client + 1])
+                    len(subset) * sum(dirichlet_sample[class_idx][0:client + 1])
                 )
                 subset = subset[lower_bound:upper_bound]
                 # print(len(subset))
