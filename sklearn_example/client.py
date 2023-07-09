@@ -60,8 +60,20 @@ if __name__ == "__main__":
         density=server.density
     )
     
-    #data_folds = []        
+    client_datas = []
+    unique_counts = []
+    for client_idx in train_data:
+        client_datas.append((client_idx, len(train_data[client_idx]["target"])))
+        unique_counts.append((client_idx, len(train_data[client_idx]["data"].drop_duplicates())))
     
+    with open(f"client_data_lengts.txt", "w") as f:
+        for client_idx, length in client_datas:
+            f.write(f"{client_idx+1}: {length}\n")
+        
+    with open(f"client_unique_data_lengts.txt", "w") as f:
+        for client_idx, length in unique_counts:
+            f.write(f"{client_idx+1}: {length}\n")    
+        
     X_train = train_data[client_id]["data"]
     y_train = train_data[client_id]["target"]
     # I double the same dataset, since some of them doesn't has enough data.
@@ -80,6 +92,7 @@ if __name__ == "__main__":
     
     ROUND_INDEX = 0
     '''
+    
     curr_round = 0
     print(f"Client Data: {X_train.shape}")
     X_test = test_data["data"]
@@ -95,7 +108,9 @@ if __name__ == "__main__":
 
     # Setting initial parameters, akin to model.compile for keras models
     utils.set_initial_params(model, n_classes=2, n_features=21)
+    '''
     print(f"THESE ARE THE VALUE COUNTS OF THE TRAINING DATA {y_train.value_counts()}")
+    '''
     
     sns.countplot(x=y_train)
 

@@ -17,7 +17,7 @@ density = 0.5
 epochs = 1
 num_rounds = 100
 data_path = (
-    "../data/diabetes_data/diabetes_binary_health_indicators_BRFSS2015.csv"
+    "../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv"
 )
 class_col = "Diabetes_binary"
 
