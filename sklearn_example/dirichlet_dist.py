@@ -28,7 +28,7 @@ class DirichletDist:
         self.random_state = random_state
 
     def _read_data(self):
-        data = pd.read_csv(self.data_path)
+        data = pd.read_csv(self.data_path)[:70692]
 
         return data
 
@@ -43,7 +43,7 @@ class DirichletDist:
 
         return dirichlet_sample
 
-    def get_dirichlet_noniid_splits(self, density=1):
+    def get_dirichlet_noniid_splits(self, density=0.5):
         """
         We create a dirichlet distribution based on the number of clients and the number of target classes.
         :var density: Determins the level of heterogeneity. The lower the density the more heterogeneous the data will be
@@ -56,27 +56,31 @@ class DirichletDist:
         train_df, test_df = train_test_split(
             data, test_size=self.test_split, random_state=self.random_state
         )
+        # print(len(dirichlet_sample)) 2x10
+        with open("dirichlet_sample.txt", "w") as f:
+            f.write(str(dirichlet_sample))
 
         client_dfs = {}
         for client in range(self.num_clients):
             client_df = pd.DataFrame()
 
             for class_idx in range(self.num_classes):
-
-                for client_idx, class_dist in enumerate(dirichlet_sample):
-                    subset = train_df.loc[(train_df[self.class_col] == class_idx)]
-                    # print(len(subset))
-                    lower_bound = math.floor(
-                        len(subset) * sum(dirichlet_sample[client_idx][0:client])
-                    )
-                    # print(len(subset))
-                    upper_bound = math.floor(
-                        len(subset) * sum(dirichlet_sample[client_idx][0 : client + 1])
-                    )
-                    subset = subset[lower_bound:upper_bound]
-                    # print(len(subset))
-                    client_df = pd.concat([client_df, subset])
-                    # print("Client df: ", len(client_df))
+                subset = train_df.loc[(train_df[self.class_col] == class_idx)]
+                # print(len(subset))
+                lower_bound = math.floor(
+                    len(subset) * sum(dirichlet_sample[class_idx][0:client])
+                )
+                # print(len(subset))
+                # Sometimes the difference between the number at index client and client+1 is so small
+                # that the lower bound is equal to the upper bound
+                upper_bound = math.floor(
+                    len(subset) * sum(dirichlet_sample[class_idx][0:client + 1])
+                )
+                subset = subset[lower_bound:upper_bound]
+                # print(len(subset))
+                client_df = pd.concat([client_df, subset])
+                # print("Client df: ", len(client_df))
+                    
 
             client_dfs[client] = {
                 "target": client_df[self.class_col],

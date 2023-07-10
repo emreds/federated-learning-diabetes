@@ -14,13 +14,13 @@ warnings.filterwarnings("ignore")
 
 test_split = 0.2
 density = 0.5
-epochs = 1
+epochs = 3
 num_rounds = 100
 data_path = (
     "../data/diabetes_data/diabetes_binary_5050split_health_indicators_BRFSS2015.csv"
 )
 class_col = "Diabetes_binary"
-
+plot_client_dist = True
 
 def fit_round(server_round: int) -> Dict:
     """Send round number to client."""
@@ -56,6 +56,17 @@ def get_evaluate_fn(
         scores["loss"] = loss
         scores["Accuracy"] = accuracy
         wandb.log(scores)
+        
+        if server_round == 100: 
+            feature_importances = model.coef_[0]
+            # Print feature importances for the central model.
+            for feature, importance in zip(X_test.columns, feature_importances):
+                print(f"\n {feature}: {importance}")
+                
+            with open("./central_feature_importances.txt", 'w') as file:
+                    for feature, importance in zip(X_test.columns, feature_importances): 
+                        file.write(f"{feature}: {importance}\n")
+        
         return loss, {"accuracy": accuracy}
 
     return evaluate
