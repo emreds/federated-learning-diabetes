@@ -91,7 +91,7 @@ if __name__ == "__main__":
         # Plot the figures
         for i in range(10):
             plt.subplot(2, 5, i+1)
-            sns.countplot(x=y_train)
+            sns.countplot(x=train_data[i]["target"])
             plt.xlabel('Class')
             plt.ylabel('Count')
             plt.title(f'Class Distribution for Client {i+1}')
