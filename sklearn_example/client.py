@@ -17,7 +17,7 @@ from sklearn.model_selection import KFold
 warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
-    random_seed = 42
+    random_seed = server.random_seed
 
     parser = argparse.ArgumentParser(description="Flower")
     parser.add_argument(

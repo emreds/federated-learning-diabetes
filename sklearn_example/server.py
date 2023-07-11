@@ -21,6 +21,7 @@ data_path = (
 )
 class_col = "Diabetes_binary"
 plot_client_dist = True
+random_seed = 42
 
 def fit_round(server_round: int) -> Dict:
     """Send round number to client."""
